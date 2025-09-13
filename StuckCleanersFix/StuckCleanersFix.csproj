@@ -1,0 +1,121 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<ProjName>StuckCleanersFix</ProjName>
+		<Version>1.0.0</Version>
+		<GameDir>C:\Program Files (x86)\Steam\steamapps\common\Schedule I</GameDir>
+		<GamePath>$(GameDir)\Schedule I.exe</GamePath>
+	</PropertyGroup>
+
+	<!-- Conditionally set some properties depending on Configuration. -->
+	<PropertyGroup Condition="'$(Configuration)'=='IL2CPP'">
+		<TargetFramework>net6</TargetFramework>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Mono'">
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<DefineConstants>$(DefineConstants);MONO_BUILD;</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<RootNamespace>$(ProjName)</RootNamespace>
+		<LangVersion>default</LangVersion>
+		<IsPackable>false</IsPackable>
+		<AssemblyVersion>$(VersionString)</AssemblyVersion>
+		<AssemblyName>$(ProjName)$(Configuration)</AssemblyName>
+		<FileVersion>$(VersionString)</FileVersion>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Configurations>IL2CPP;Mono</Configurations>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+
+	<!-- Hide libs directory of other Configuration -->
+	<ItemGroup Condition="'$(Configuration)'=='Mono'">
+		<EmbeddedResource Remove="il2cpp_libs\**" />
+		<None Remove="il2cpp_libs\**" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(Configuration)'=='IL2CPP'">
+		<EmbeddedResource Remove="Mono_libs\**" />
+		<None Remove="Mono_libs\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Remove="bin\**" />
+		<EmbeddedResource Remove="obj\**" />
+		<EmbeddedResource Remove="package\**" />
+		<EmbeddedResource Remove="package_resources\**" />
+		<None Remove="bin\**" />
+		<None Remove="obj\**" />
+		<None Remove="package\**" />
+		<None Remove="package_resources\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)'=='IL2CPP'">
+		<Reference Include="0Harmony">
+			<HintPath>il2cpp_libs\0Harmony.dll</HintPath>
+		</Reference>
+		<Reference Include="Assembly-CSharp">
+			<HintPath>il2cpp_libs\Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="Il2CppFishNet.Runtime">
+			<HintPath>il2cpp_libs\Il2CppFishNet.Runtime.dll</HintPath>
+		</Reference>
+		<Reference Include="Il2CppInterop.Runtime">
+			<HintPath>il2cpp_libs\Il2CppInterop.Runtime.dll</HintPath>
+		</Reference>
+		<Reference Include="Il2Cppmscorlib">
+			<HintPath>il2cpp_libs\Il2Cppmscorlib.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine">
+			<HintPath>il2cpp_libs\UnityEngine.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.AIModule">
+			<HintPath>il2cpp_libs\UnityEngine.AIModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>il2cpp_libs\UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(Configuration)'=='Mono'">
+		<Reference Include="Assembly-CSharp">
+			<HintPath>mono_libs\Assembly-CSharp.dll</HintPath>
+		</Reference>
+		<Reference Include="FishNet.Runtime">
+			<HintPath>mono_libs\FishNet.Runtime.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine">
+			<HintPath>mono_libs\UnityEngine.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.AIModule">
+			<HintPath>mono_libs\UnityEngine.AIModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>mono_libs\UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="Mod.cs" />
+		<Compile Include="StuckCleanersFix.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="LavaGang.MelonLoader" Version="0.7.1" />
+		<PackageReference Include="Lib.Harmony" Version="2.4.1" />
+		<PackageReference Include="Microsoft.Diagnostics.Runtime" Version="3.1.512801" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="Powershell .\package_resources\MakeVortexPackage.ps1 -arch $(Configuration) -ver $(Version) -proj $(ProjName)&#xD;&#xA;Powershell .\package_resources\MakeThunderstorePackage.ps1 -arch $(Configuration) -ver $(Version) -proj $(ProjName)&#xD;&#xA;del &quot;$(GameDir)\mods\$(ProjName)*.dll&quot; 2&gt;nul&#xD;&#xA;copy &quot;bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).dll&quot; &quot;$(GameDir)\mods\&quot;&#xD;&#xA;" />
+	</Target>
+</Project>

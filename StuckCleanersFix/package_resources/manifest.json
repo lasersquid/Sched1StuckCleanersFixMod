@@ -1,0 +1,9 @@
+{
+    "name": "IncreaseBuyLimit%%ARCH%%",
+    "version_number": "%%VERSION%%",
+    "website_url": "https://github.com/lasersquid/Sched1IncreaseBuyLimitMod",
+    "description": "Increase max buy limit to 999999. Works in shops and delivery app.",
+    "dependencies": [
+	"LavaGang-MelonLoader-0.7.0"
+    ]
+}
