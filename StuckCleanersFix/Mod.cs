@@ -12,12 +12,33 @@ namespace StuckCleanersFix
     public class StuckCleanersFixMod : MelonMod
     {
         public HarmonyLib.Harmony harmony = new HarmonyLib.Harmony("com.lasersquid.stuckcleanersfix");
+        public bool stop = true;
 
         public override void OnInitializeMelon()
         {
             SetMod();
             LoggerInstance.Msg("Initialized.");
         }
+
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+        {
+            base.OnSceneWasLoaded(buildIndex, sceneName);
+            if (sceneName.ToLower().Contains("main") || sceneName.ToLower().Contains("tutorial"))
+            {
+                stop = false;
+            }
+        }
+
+        public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
+        {
+            base.OnSceneWasUnloaded(buildIndex, sceneName);
+            if (sceneName.ToLower().Contains("main") || sceneName.ToLower().Contains("tutorial"))
+            {
+                stop = true;
+            }
+
+        }
+
 
         private List<Type> GetPatchTypes()
         {

@@ -2,6 +2,9 @@
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
+using MelonLoader;
+using System.Collections;
+
 
 #if MONO_BUILD
 using FishNet;
@@ -128,8 +131,6 @@ namespace StuckCleanersFix
         }
     }
 
-
-
     [HarmonyPatch]
     public class TrashBehaviourPatches : Sched1PatchesBase
     {
@@ -149,18 +150,44 @@ namespace StuckCleanersFix
         }
 
         // A cleanup routine runs periodically that takes care of destroyed TrashItems, but it doesn't
-        // check for destroyed trash bags. Add a check to the cleanup routine.
-        [HarmonyPatch(typeof(TrashContainerItem), "CheckTrashItems")]
-        [HarmonyPrefix]
-        public static void ChecKTrashItemsPrefix(TrashContainerItem __instance, ref bool __result)
+        // check for destroyed trash bags. Add a cleanup routine for trash bags.
+        private static IEnumerator CheckTrashBags(TrashContainerItem __instance)
         {
+            if (Mod.stop)
+            {
+                yield break;
+            }
             for (int i = 0; i < __instance.TrashBagsInRadius.Count; i++)
             {
                 if (__instance.TrashBagsInRadius[i] == null && __instance.TrashBagsInRadius[i] is not null)
                 {
+                    Log("Found destroyed trash bag; removing from TrashBagsInRadius.");
                     __instance.RemoveTrashBagFromRadius(__instance.TrashBagsInRadius[i]);
                     i--;
                 }
+            }
+
+            if (!Mod.stop)
+            {
+                // Repeat this coroutine every 5 seconds.
+                yield return new WaitForSeconds(5f);
+                MelonCoroutines.Start(CheckTrashBags(__instance));
+            }
+            else
+            {
+                yield break;
+            }
+        }
+
+        // We can't easily add a postfix to the CheckTrashItems function, so just start our own coroutine
+        // at the same time as CheckTrashItems.
+        [HarmonyPatch(typeof(TrashContainerItem), "InitializeGridItem")]
+        [HarmonyPostfix]
+        public static void InitializeGridItemPostfix(TrashContainerItem __instance)
+        {
+            if (!__instance.isGhost)
+            {
+                MelonCoroutines.Start(CheckTrashBags(__instance));
             }
         }
 
