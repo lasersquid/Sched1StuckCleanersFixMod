@@ -1,8 +1,8 @@
 {
-    "name": "IncreaseBuyLimit%%ARCH%%",
+    "name": "StuckCleanersFix%%ARCH%%",
     "version_number": "%%VERSION%%",
-    "website_url": "https://github.com/lasersquid/Sched1IncreaseBuyLimitMod",
-    "description": "Increase max buy limit to 999999. Works in shops and delivery app.",
+    "website_url": "https://github.com/lasersquid/Sched1StuckCleanersFixMod",
+    "description": "Fixes bugs in Cleaner behaviour that result in them standing around doing nothing.",
     "dependencies": [
 	"LavaGang-MelonLoader-0.7.0"
     ]

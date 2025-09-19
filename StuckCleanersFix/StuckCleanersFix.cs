@@ -6,9 +6,11 @@ using MelonLoader;
 using System.Collections;
 
 
+
 #if MONO_BUILD
 using FishNet;
 using ScheduleOne.DevUtilities;
+using ScheduleOne.Employees;
 using ScheduleOne.EntityFramework;
 using ScheduleOne.NPCs;
 using ScheduleOne.NPCs.Behaviour;
@@ -18,6 +20,7 @@ using Il2CppFishNet;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime;
 using Il2CppScheduleOne.DevUtilities;
+using Il2CppScheduleOne.Employees;
 using Il2CppScheduleOne.EntityFramework;
 using Il2CppScheduleOne.NPCs;
 using Il2CppScheduleOne.NPCs.Behaviour;
@@ -38,7 +41,6 @@ namespace StuckCleanersFix
             return AccessTools.Property(type, fieldName).GetValue(target);
 #endif
         }
-
         public static void SetField(Type type, string fieldName, object target, object value)
         {
 #if MONO_BUILD
@@ -140,12 +142,12 @@ namespace StuckCleanersFix
         [HarmonyPrefix]
         public static bool IsAtDestinationPrefix(DisposeTrashBagBehaviour __instance, ref bool __result)
         {
-            if (__instance.heldTrash == null && __instance.TargetBag != null)
+            if (CastTo<UnityEngine.Object>(GetField(typeof(DisposeTrashBagBehaviour), "heldTrash", __instance)) == null && __instance.TargetBag != null)
             {
                 __result = Vector3.Distance(__instance.Npc.transform.position, __instance.TargetBag.transform.position) <= 2f;
                 return false;
             }
-            __result = Vector3.Distance(__instance.Npc.transform.position, __instance.Cleaner.AssignedProperty.DisposalArea.StandPoint.position) <= 2f;
+            __result = Vector3.Distance(__instance.Npc.transform.position, CastTo<Cleaner>(GetProperty(typeof(DisposeTrashBagBehaviour), "Cleaner", __instance)).AssignedProperty.DisposalArea.StandPoint.position) <= 2f;
             return false;
         }
 
@@ -162,15 +164,16 @@ namespace StuckCleanersFix
                 if (__instance.TrashBagsInRadius[i] == null && __instance.TrashBagsInRadius[i] is not null)
                 {
                     Log("Found destroyed trash bag; removing from TrashBagsInRadius.");
-                    __instance.RemoveTrashBagFromRadius(__instance.TrashBagsInRadius[i]);
+                    CallMethod(typeof(TrashContainerItem), "RemoveTrashBagFromRadius", __instance, [__instance.TrashBagsInRadius[i]]);
                     i--;
                 }
             }
 
+            // Repeat this coroutine every 5 seconds.
+            yield return new WaitForSeconds(5f);
+
             if (!Mod.stop)
             {
-                // Repeat this coroutine every 5 seconds.
-                yield return new WaitForSeconds(5f);
                 MelonCoroutines.Start(CheckTrashBags(__instance));
             }
             else
@@ -198,7 +201,7 @@ namespace StuckCleanersFix
         [HarmonyPrefix]
         public static bool TrashGrabberGoToTargetPrefix(EmptyTrashGrabberBehaviour __instance)
         {
-            if (!__instance.AreActionConditionsMet(false))
+            if (!(bool)CallMethod(typeof(EmptyTrashGrabberBehaviour), "AreActionConditionsMet", __instance, [false]))
             {
                 __instance.Disable_Networked(null);
                 return false;
@@ -209,7 +212,7 @@ namespace StuckCleanersFix
                 __instance.Disable_Networked(null);
                 return false;
             }
-            __instance.SetDestination(accessPoint.position, true);
+            CallMethod(typeof(EmptyTrashGrabberBehaviour), "SetDestination", __instance, [accessPoint.position, true]);
             return false;
         }
 
@@ -226,21 +229,21 @@ namespace StuckCleanersFix
             {
                 return false;
             }
-            if (__instance.actionCoroutine != null)
+            if (GetField(typeof(EmptyTrashGrabberBehaviour), "actionCoroutine", __instance) != null)
             {
                 return false;
             }
-            if (!__instance.AreActionConditionsMet(false))
+            if (!(bool)CallMethod(typeof(EmptyTrashGrabberBehaviour), "AreActionConditionsMet", __instance,  [false]))
             {
                 __instance.Disable_Networked(null);
                 return false;
             }
-            if (__instance.IsAtDestination())
+            if ((bool)CallMethod(typeof(EmptyTrashGrabberBehaviour), "IsAtDestination", __instance, []))
             {
-                __instance.PerformAction();
+                CallMethod(typeof(EmptyTrashGrabberBehaviour), "PerformAction", __instance, []);
                 return false;
             }
-            __instance.GoToTarget();
+            CallMethod(typeof(EmptyTrashGrabberBehaviour), "GoToTarget", __instance, []);
             return false;
         }
 
@@ -249,12 +252,12 @@ namespace StuckCleanersFix
         [HarmonyPrefix]
         public static bool BagTrashGoToTargetPrefix(BagTrashCanBehaviour __instance)
         {
-            if (!__instance.AreActionConditionsMet(false))
+            if (!(bool)CallMethod(typeof(BagTrashCanBehaviour), "AreActionConditionsMet", __instance, [false]))
             {
                 __instance.Disable_Networked(null);
                 return false;
             }
-            __instance.SetDestination(GetAccessPointWithProximity(__instance.TargetTrashCan, __instance.Npc, BagTrashCanBehaviour.ACTION_MAX_DISTANCE).position, true);
+            CallMethod(typeof(BagTrashCanBehaviour), "SetDestination", __instance, [GetAccessPointWithProximity(__instance.TargetTrashCan, __instance.Npc, BagTrashCanBehaviour.ACTION_MAX_DISTANCE).position, true]);
             return false;
         }
 
@@ -271,21 +274,21 @@ namespace StuckCleanersFix
             {
                 return false;
             }
-            if (__instance.actionCoroutine != null)
+            if (GetField(typeof(BagTrashCanBehaviour), "actionCoroutine", __instance) != null)
             {
                 return false;
             }
-            if (!__instance.AreActionConditionsMet(false))
+            if (!(bool)CallMethod(typeof(BagTrashCanBehaviour), "AreActionConditionsMet", __instance, [false]))
             {
                 __instance.Disable_Networked(null);
                 return false;
             }
-            if (__instance.IsAtDestination())
+            if ((bool)CallMethod(typeof(BagTrashCanBehaviour), "IsAtDestination", __instance, []))
             {
-                __instance.PerformAction();
+                CallMethod(typeof(BagTrashCanBehaviour), "PerformAction", __instance, []);
                 return false;
             }
-            __instance.GoToTarget();
+            CallMethod(typeof(BagTrashCanBehaviour), "GoToTarget", __instance, []);
             return false;
         }
 
